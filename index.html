@@ -1958,7 +1958,7 @@ var args=body.args||{};var coll=args.collection||"items";var store=load();var ar
 if(action==="records.list"){result={records:arr};}
 else if(action==="records.create"){
 var id=args.id||("rec_"+Date.now()+"_"+Math.floor(Math.random()*10000));var val=args.value||{};
-if(args.idempotency_key){var ex=arr.find(function(r){return r.idempotency_key===args.idempotency_key;});if(ex){result={id:ex.id};}}
+if(args.idempotency_key){var ex=arr.find(function(r){return r.idempotency_key===args.idempotency_key;});if(ex){ex.value=val;store[coll]=arr;save(store);result={id:ex.id};}}
 if(!result){var rec={id:id,value:val,idempotency_key:args.idempotency_key||null};arr.push(rec);store[coll]=arr;save(store);result={id:id};}
 }
 else if(action==="records.replace"||action==="records.put"){
