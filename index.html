@@ -2061,7 +2061,7 @@ var sel=document.getElementById("atc-auto-shop");if(!sel||!sel.value)return;
 var shops=await listShops();var f=shops.find(function(s){return s.id===sel.value;});if(!f)return;
 var v=f.value||{};
 document.getElementById("atc-auto-email").value=v.email||v.paymentEmail||"";
-document.getElementById("atc-auto-slug").value=v.subdomain||slugify(v.name||"");
+document.getElementById("atc-auto-slug").value=slugify(v.name||"");
 }
 async function onConfirm(){
 try{
