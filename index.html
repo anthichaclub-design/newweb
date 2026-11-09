@@ -2088,7 +2088,7 @@ window.open(mailto,"_blank");
 }catch(e){alert("สร้างลิงก์ไม่สำเร็จ: "+(e&&e.message?e.message:e));}
 }
 if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){createPanel();handleDeepLink();});}else{createPanel();handleDeepLink();}
-})();
+}catch(e){}})();
 </script>
 </body>
 </html>
