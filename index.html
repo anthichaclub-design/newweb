@@ -2015,17 +2015,39 @@ var shops=await listShops();
 var found=null;
 for(var i=0;i<shops.length;i++){var v=shops[i].value||{};if(v.subdomain===p||v.code===p){found=v;break;}}
 if(!found)return;
-// ซ่อนแอปเดิม แล้วโชว์หน้าร้านของร้านนั้น (ใช้ข้อมูลที่บันทึกไว้ถาวร)
 var root=document.getElementById("root");if(root)root.style.display="none";
-var wrap=document.createElement("div");wrap.id="atc-deep-link-shop";wrap.style.cssText="max-width:900px;margin:0 auto;padding:18px;font-family:Prompt,sans-serif";
+var wrap=document.createElement("div");wrap.id="atc-deep-link-shop";
+var main=found.main||"#2E7D32";var bg=found.bg||"#F1F8E9";var txt=found.text||"#22301F";
+wrap.style.cssText="max-width:900px;margin:0 auto;padding:18px;font-family:Prompt,sans-serif;background:"+bg+";color:"+txt;
+function isImg(s){return /^https?:\/\//i.test(s||"");}
+function imgTag(u,h){if(!isImg(u))return "";return '<img src="'+esc(u)+'" style="width:100%;height:'+(h||180)+'px;object-fit:cover;border-radius:12px">';}
+function galItem(g){if(typeof g==="string")return g;if(g&&typeof g==="object")return g.image||g.url||g.src||"";return "";}
+var logoHtml=isImg(found.logo)?'<img src="'+esc(found.logo)+'" style="width:72px;height:72px;object-fit:cover;border-radius:50%;background:#fff;padding:4px">':'<span style="font-size:48px">🛍️</span>';
+var coverHtml=isImg(found.cover)?'<div style="margin-top:14px">'+imgTag(found.cover,220)+'</div>':"";
 var prods=(found.products||[]).map(function(pr){
-var imgs=(pr.images||[]).filter(Boolean);var img=imgs[0]||pr.image||"";
-return '<div style="background:#fff;border-radius:16px;padding:14px"><div style="text-align:center;font-size:48px">'+(img?'<img src="'+esc(img)+'" style="width:100%;height:180px;object-fit:cover;border-radius:12px">':'🛍️')+'</div><h3 style="margin:8px 0 4px">'+esc(pr.name||"สินค้า")+'</h3><p style="color:#666;font-size:14px">'+esc(pr.desc||"")+'</p><p style="font-weight:800;color:#2E7D32;font-size:18px">'+(pr.price||0)+' ฿</p><p style="font-size:13px;color:#666">สถานะ: '+esc(pr.status||"มีของ")+'</p></div>';
+var imgs=((pr.images||[]).filter(Boolean).slice(0,4));if(!imgs.length&&pr.image)imgs=[pr.image];
+var imgsHtml=imgs.length?imgs.map(function(u){return imgTag(u,140);}).join(""):'<div style="text-align:center;font-size:48px">🛍️</div>';
+var oldHtml=(pr.oldPrice&&pr.oldPrice>pr.price)?' <span style="text-decoration:line-through;color:#999;font-size:14px;font-weight:400">'+esc(String(pr.oldPrice))+' ฿</span>':"";
+return '<div style="background:#fff;border-radius:16px;padding:14px"><div>'+imgsHtml+'</div><h3 style="margin:8px 0 4px">'+esc(pr.name||"สินค้า")+'</h3><p style="color:#666;font-size:14px">'+esc(pr.desc||"")+'</p><p style="font-weight:800;color:'+main+';font-size:18px">'+(pr.price||0)+' ฿'+oldHtml+'</p><p style="font-size:13px;color:#666">สถานะ: '+esc(pr.status||"มีของ")+' • หมวด: '+esc(pr.category||"ทั่วไป")+'</p></div>';
 }).join("");
-wrap.innerHTML='<div style="background:#2E7D32;color:#fff;border-radius:20px;padding:22px"><p style="margin:0;font-size:13px">ร้านค้าออนไลน์ • '+esc(found.code||"")+'</p><h1 style="margin:6px 0;font-size:34px">'+esc(found.name||"ร้านค้า")+'</h1><p>'+esc(found.slogan||"")+'</p><p style="opacity:.95">'+esc(found.shopDesc||"")+'</p><p style="font-size:13px;opacity:.9">LINE: '+esc(found.line||found.lineId||"-")+' • โทร: '+esc(found.phone||"-")+'</p></div>'
-+'<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>B1 • ประวัติร้าน</h3><p>'+esc(found.b1Text||"")+'</p></div>'
+var b1Html='<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>'+esc(found.b1Title||"B1 • ประวัติร้าน")+'</h3>'+(isImg(found.b1Image)?imgTag(found.b1Image,200):"")+'<p style="margin-top:8px">'+esc(found.b1Text||"")+'</p></div>';
+var b2Html="";
+if(found.articles&&found.articles.length){b2Html='<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>B2 • บทความ</h3>'+found.articles.map(function(a){return '<div style="margin-top:12px;border-top:1px solid #eee;padding-top:12px">'+(isImg(a.image)?imgTag(a.image,160):"")+'<h4 style="margin:8px 0 4px">'+esc(a.title||"")+'</h4><p style="font-size:14px;color:#555">'+esc(a.text||"")+'</p></div>';}).join("")+'</div>';}
+var b3Html="";
+if(found.reviews&&found.reviews.length){b3Html='<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>B3 • รีวิวลูกค้า</h3>'+found.reviews.map(function(r){var stars="";for(var s=0;s<(r.stars||5);s++)stars+="★";return '<div style="margin-top:10px;border-top:1px solid #eee;padding-top:10px"><b>'+esc(r.name||"ลูกค้า")+'</b> <span style="color:#F9A825">'+stars+'</span><p style="font-size:14px;color:#555;margin:4px 0 0">'+esc(r.text||"")+'</p></div>';}).join("")+'</div>';}
+var b4Html="";
+if(found.faqs&&found.faqs.length){b4Html='<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>B4 • ถาม-ตอบ</h3>'+found.faqs.map(function(f){return '<div style="margin-top:10px"><b>Q: '+esc(f.q||"")+'</b><p style="font-size:14px;color:#555;margin:4px 0 0">A: '+esc(f.a||"")+'</p></div>';}).join("")+'</div>';}
+var b5Html="";
+if(found.gallery&&found.gallery.length){var gImgs=found.gallery.map(galItem).filter(isImg);if(gImgs.length){b5Html='<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>B5 • แกลเลอรี่</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">'+gImgs.map(function(u){return imgTag(u,160);}).join("")+'</div></div>';}}
+var contactHtml='<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>ติดต่อร้าน</h3><p style="font-size:14px">ที่อยู่: '+esc(found.address||"-")+'</p><p style="font-size:14px">LINE: '+esc(found.line||found.lineId||"-")+' • โทร: '+esc(found.phone||"-")+' • อีเมล: '+esc(found.email||found.paymentEmail||"-")+'</p></div>';
+var payHtml="";
+if(found.promptpay||found.bankName||found.accountNo||found.qr){payHtml='<div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px"><h3>ชำระเงิน</h3><p style="font-size:14px">พร้อมเพย์: '+esc(found.promptpay||"-")+'</p><p style="font-size:14px">ธนาคาร: '+esc(found.bankName||"-")+' • เลขบัญชี: '+esc(found.accountNo||"-")+' • ชื่อบัญชี: '+esc(found.accountName||"-")+'</p>'+(isImg(found.qr)?'<div style="margin-top:10px"><img src="'+esc(found.qr)+'" style="width:180px;height:180px;object-fit:cover;border-radius:12px"></div>':"")+'</div>';}
+wrap.innerHTML='<div style="background:'+main+';color:#fff;border-radius:20px;padding:22px"><div style="display:flex;gap:14px;align-items:center">'+logoHtml+'<div><p style="margin:0;font-size:13px">ร้านค้าออนไลน์ • '+esc(found.code||"")+'</p><h1 style="margin:6px 0;font-size:34px">'+esc(found.name||"ร้านค้า")+'</h1></div></div><p style="margin-top:12px">'+esc(found.slogan||"")+'</p><p style="opacity:.95">'+esc(found.shopDesc||"")+'</p><p style="font-size:13px;opacity:.9">LINE: '+esc(found.line||found.lineId||"-")+' • โทร: '+esc(found.phone||"-")+' • อีเมล: '+esc(found.email||found.paymentEmail||"-")+'</p></div>'
++coverHtml
++b1Html
 +'<div style="margin-top:14px"><h2>สินค้าของร้าน</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+(prods||"<p>ยังไม่มีสินค้า</p>")+'</div></div>'
-+'<div style="background:#E8F5E9;border-radius:14px;padding:14px;margin-top:14px"><b>ลิงก์ร้านนี้:</b> '+esc(location.href)+'<br><a href="/" style="color:#2E7D32;font-weight:700">← กลับหน้าแรก ATC</a></div>';
++b2Html+b3Html+b4Html+b5Html+contactHtml+payHtml
++'<div style="background:#E8F5E9;border-radius:14px;padding:14px;margin-top:14px"><b>ลิงก์ร้านนี้:</b> '+esc(location.href)+'<br><a href="/" style="color:'+main+';font-weight:700">← กลับหน้าแรก ATC</a><br><br><a href="/" style="display:inline-block;background:'+main+';color:#fff;padding:10px 16px;border-radius:999px;font-weight:700;text-decoration:none">✏️ หลังร้านของร้านค้า — แก้ไขร้านนี้</a><p style="font-size:13px;color:#555;margin:8px 0 0">กดแล้วถึงหน้าแรก กด <b>Builder - แต่งร้าน</b> แล้วเลือก <b>'+esc(found.code||"")+' • '+esc(found.name||"")+'</b> แล้วกด บันทึก ได้เลย หรือกด หลังร้านของร้านค้า แล้วใส่รหัส <b>'+esc(found.code||"")+'</b></p></div>';
 document.body.appendChild(wrap);
 }catch(e){}
 }
